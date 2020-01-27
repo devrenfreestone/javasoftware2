@@ -1,0 +1,117 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Controllers;
+
+import Utils.DBConnection;
+import Utils.Query;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.util.ResourceBundle;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
+import java.util.Locale;
+
+/**
+ * FXML Controller class
+ *
+ * @author Dev
+ */
+public class LogInController implements Initializable {
+    String language = Locale.getDefault().toString();
+
+    @FXML
+    private TextField username;
+    @FXML
+    private PasswordField password;
+    @FXML
+    private Button buttonLogIn;
+
+    /**
+     * Initializes the controller class.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+
+    }    
+
+    @FXML
+    private void logIn(MouseEvent event) throws IOException {
+        String userName = username.getText().trim();
+        String passWord = password.getText().trim();
+        if(language.startsWith("es")){
+            username.setText("Nombre de usuario");
+            password.setText("Contraseña");
+        }
+        try{
+            //Test Connection (see console for successful connection message)
+            DBConnection.startConnection();
+            
+            //Write SQL statement
+            String sqlStatement = "SELECT * FROM user WHERE user.userName = '" + userName + "' AND user.password = '" + passWord + "'";
+            
+            //Execute Statement and create ResultSet object
+            ResultSet result = Query.makeQuery(sqlStatement);
+            
+            //Get all records from ResultSet object
+            int count = 0;
+            while(result.next()) {
+//                
+                ++count;
+            }
+            
+            if(count == 1){
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/ViewAppt.fxml"));
+                Controllers.ViewApptController controller = new Controllers.ViewApptController(userName);
+                loader.setController(controller);
+                Parent root = loader.load();                
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.setResizable(false);
+                stage.show();
+            } else{
+                if(language.startsWith("es")){
+                    alertMessage("Nombre de usuario o contraseña incorrecto");
+                } else {
+                    alertMessage("Incorrect username or password");
+                }
+            }
+            
+//            launch(args);
+            
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+        
+        
+        
+        
+    }
+    
+    
+    private void alertMessage(String field){
+           Alert alert = new Alert(Alert.AlertType.WARNING);
+           if(language.startsWith("es")){
+                    alert.setTitle("Incapaz de iniciar sesión");
+                } else {
+                    alert.setTitle("Unable to log in");
+                }
+           alert.setContentText(field);
+           alert.showAndWait();
+        }
+    
+}

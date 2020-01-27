@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"><!--fx:controller="Controllers.ViewApptController">-->
+   <children>
+      <VBox layoutX="38.0" layoutY="61.0" prefHeight="600.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="800.0">
+               <children>
+                  <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="80.0" prefWidth="275.0" text="Consultant Appointments" textAlignment="CENTER" wrapText="true">
+                     <HBox.margin>
+                        <Insets right="25.0" />
+                     </HBox.margin>
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <VBox alignment="CENTER_LEFT" prefWidth="75.0">
+                     <children>
+                        <RadioButton fx:id="All" onMouseClicked="#All" mnemonicParsing="false" prefWidth="40.0" text="All">
+                           <toggleGroup>
+                              <ToggleGroup fx:id="Appt" />
+                           </toggleGroup>
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </RadioButton>
+                        <RadioButton fx:id="Week" onMouseClicked="#Week" mnemonicParsing="false" text="Week" toggleGroup="$Appt">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                           <VBox.margin>
+                              <Insets bottom="10.0" top="10.0" />
+                           </VBox.margin>
+                        </RadioButton>
+                        <RadioButton fx:id="Month" onMouseClicked="#Month" mnemonicParsing="false" text="Month" toggleGroup="$Appt">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </RadioButton>
+                     </children>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </VBox>
+                  <Button fx:id="EditAppt" mnemonicParsing="false" onMouseClicked="#EditAppt" prefWidth="125.0" text="Edit Appointments">
+                     <HBox.margin>
+                        <Insets left="20.0" right="5.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="EditCustomers" mnemonicParsing="false" onMouseClicked="#EditCustomers" prefWidth="125.0" text="Edit Customers">
+                     <HBox.margin>
+                        <Insets left="5.0" right="5.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="ViewReports" mnemonicParsing="false" onMouseClicked="#ViewReports" prefWidth="125.0" text="View Reports">
+                     <HBox.margin>
+                        <Insets left="5.0" right="15.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </HBox>
+            <TableView fx:id="AppointmentList" prefHeight="500.0" prefWidth="200.0">
+              <columns>
+                <TableColumn prefWidth="50.0" text="Id">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="AppointmentId" />
+                    </cellValueFactory>                                   
+                </TableColumn>
+                <TableColumn prefWidth="125.0" text="Name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="CustomerName" />
+                    </cellValueFactory>                              
+                </TableColumn>
+                <TableColumn prefWidth="175.0" text="Description">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="Description" />
+                    </cellValueFactory>                               
+                </TableColumn>
+                <TableColumn prefWidth="125.0" text="Appt Start">
+                   <cellValueFactory>
+                        <PropertyValueFactory property="Start" />
+                   </cellValueFactory>                                 
+                </TableColumn>
+                <TableColumn prefWidth="125.0" text="Appt End">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="End" />
+                    </cellValueFactory>                              
+                </TableColumn>
+                <TableColumn prefWidth="100.0" text="Location">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="Location" />
+                    </cellValueFactory>                                
+                </TableColumn>
+                <TableColumn prefWidth="100.0" text="User">
+                     <cellValueFactory>
+                        <PropertyValueFactory property="UserName" />
+                    </cellValueFactory>                               
+                </TableColumn>
+              </columns>
+            </TableView>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
