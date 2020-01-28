@@ -73,6 +73,7 @@ public class EditApptController implements Initializable {
     int apptSearch = -1;
     int apptStart = 0;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+    DateTimeFormatter timeOnly = DateTimeFormatter.ofPattern("HH:mm");
     
     public interface clear {
         String clear();
@@ -452,6 +453,7 @@ private void generateCustomerTable(){
         if(localStart.getHour() < apptStartTime.getHour()){
             ApptDate.setValue(apptDate.plusDays(1));
         }
+        if(ApptStart.getLength() == )
         return;
     }
     
@@ -478,8 +480,8 @@ private void generateCustomerTable(){
     };
     
     validate validate = () -> {
-        LocalDateTime apptStarts = LocalDateTime.parse(ApptStart.getText().substring(0, 19),formatter);
-        LocalDateTime apptEnds = LocalDateTime.parse(ApptEnd.getText().substring(0, 19),formatter);
+        LocalTime apptStarts = LocalTime.parse(ApptStart.getText(),timeOnly);
+        LocalTime apptEnds = LocalTime.parse(ApptEnd.getText(),timeOnly);
        if(CustomerName.getText().trim().length() == 0) {
            alertMessage("Name must not be blank");
            return false;
@@ -516,23 +518,24 @@ private void generateCustomerTable(){
     };
     
     apptVal apptVal = () -> {
+        LocalDate apptDate = ApptDate.getValue();
         apptStart = 0;
-        LocalDateTime apptStarts = LocalDateTime.parse(ApptStart.getText().substring(0, 19),formatter);
-        LocalDateTime apptEnds = LocalDateTime.parse(ApptEnd.getText().substring(0, 19),formatter);
+        LocalTime apptStarts = LocalTime.parse(ApptStart.getText(),timeOnly);
+        LocalTime apptEnds = LocalTime.parse(ApptEnd.getText(),timeOnly);
         for(Appointment a: appointment){
-            if(Timestamp.valueOf(apptStarts).after(Timestamp.valueOf(a.getStart())) && Timestamp.valueOf(apptStarts).before(Timestamp.valueOf(a.getEnd()))){
+            if(apptStarts.isAfter(LocalTime.parse(a.getStart().substring(12),timeOnly)) && apptStarts.isBefore(LocalTime.parse(a.getEnd().substring(12),timeOnly))){
                 apptStart +=1;
             }
-            if(Timestamp.valueOf(apptEnds).after(Timestamp.valueOf(a.getStart())) && Timestamp.valueOf(apptEnds).before(Timestamp.valueOf(a.getEnd()))){
+            if(apptEnds.isAfter(LocalTime.parse(a.getStart())) && apptEnds.isBefore(LocalTime.parse(a.getEnd()))){
                 apptStart +=1;
             }
         }
         if(apptStart != 0){
             alertMessage("Appointment cannot overlap other appointment(s)");
         }
-        if(apptStarts.getDayOfWeek().equals(SATURDAY) || apptStarts.getDayOfWeek().equals(SUNDAY) || apptStarts.getHour() < 8 || apptEnds.getHour() > 23 ){
+        if(apptDate.getDayOfWeek().equals(SATURDAY) || apptDate.getDayOfWeek().equals(SUNDAY) || apptStarts.getHour() < 8 || apptEnds.getHour() > 23 ){
            apptStart +=1; 
-           alertMessage("Appt must be during local business hours. Your start day is: " + apptStarts.getDayOfWeek() + " and start time is: " + apptStarts.getHour());
+           alertMessage("Appt must be during local business hours. Your start day is: " + apptDate.getDayOfWeek() + " and start time is: " + apptStarts.getHour());
         }
         return apptStart;    
     };

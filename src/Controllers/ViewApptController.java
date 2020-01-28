@@ -52,8 +52,8 @@ public class ViewApptController implements Initializable {
     String s;
     String c;
     String userName;
-//    String start;
-//    String end;
+    String start;
+    String end;
     int city = 0;
     LocalDateTime date = LocalDateTime.now();
     Appointment newAppt;
@@ -102,7 +102,7 @@ public class ViewApptController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generateAppointmentTable();
-        checkFifteen();
+//        checkFifteen();
     } 
     
     private void generateAppointmentTable() {
@@ -151,8 +151,8 @@ public class ViewApptController implements Initializable {
                 if(localStart.getHour() < apptStartTime.getHour()){
                     apptDate = apptDate.plusDays(1);
                 }
-                String start = String.valueOf(apptDate) + " " + String.valueOf(localStart.getHour()) + ":" + String.valueOf(localStart.getMinute());
-                String end = String.valueOf(apptDate) + " " + String.valueOf(localEnd.getHour()) + ":" + String.valueOf(localEnd.getMinute());
+                start = String.valueOf(apptDate) + " " + String.valueOf(localStart.getHour()) + ":" + String.valueOf(localStart.getMinute());
+                end = String.valueOf(apptDate) + " " + String.valueOf(localEnd.getHour()) + ":" + String.valueOf(localEnd.getMinute());
                 System.out.println(start + " " + end);
                 appointment.add(new Appointment(result.getInt("Id"),result.getString("Name"),result.getString("Description"),start,end,result.getString("Location"),result.getString("userName")));
                 AppointmentList.setItems(appointment);
@@ -164,9 +164,9 @@ public class ViewApptController implements Initializable {
     }
     
     private void checkFifteen(){
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
         for(Appointment a: appointment){
-            if(LocalDateTime.parse(a.getStart(), formatter).isAfter(now) && LocalDateTime.parse(a.getStart(), formatter).isBefore(now.plusMinutes(15))){
+            if(ZonedDateTime.parse(a.getStart()).isAfter(now) && ZonedDateTime.parse(a.getStart()).isBefore(now.plusMinutes(15))){
                 alertMessage(a.getUserName() + " has an appointment with " + a.getCustomerName() + " at " + a.getStart().substring(11));
             }
         }
