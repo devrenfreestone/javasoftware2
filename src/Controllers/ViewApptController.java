@@ -52,10 +52,20 @@ public class ViewApptController implements Initializable {
     String s;
     String c;
     String userName;
+//    String start;
+//    String end;
     int city = 0;
     LocalDateTime date = LocalDateTime.now();
     Appointment newAppt;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    LocalDateTime now = LocalDateTime.now();
+    ZonedDateTime zStartdt = null;
+    ZonedDateTime zEnddt = null;
+    ZonedDateTime localStartTime = null;
+    ZonedDateTime localEndTime = null;
+    Instant zStartgmt = null;
+    Instant zEndgmt = null;
+
 
     @FXML
     private RadioButton All;
@@ -93,10 +103,9 @@ public class ViewApptController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         generateAppointmentTable();
         checkFifteen();
-        System.out.println(LocalDateTime.now());
     } 
     
-    private void generateAppointmentTable(){
+    private void generateAppointmentTable() {
         appointment.clear();
         q = "select\n" +
             "a.appointmentId Id,\n" +
@@ -135,12 +144,17 @@ public class ViewApptController implements Initializable {
                         zone = ZoneId.of("America/New_York");
                         break;
                 }
-                ZonedDateTime zStartdt = ZonedDateTime.of(apptDate,apptStartTime,zone);
-                ZonedDateTime zEnddt = ZonedDateTime.of(apptDate,apptEndTime, zone);
+                zStartdt = ZonedDateTime.of(apptDate,apptStartTime,zone);
+                zEnddt = ZonedDateTime.of(apptDate,apptEndTime, zone);
                 ZonedDateTime localStart = zStartdt.toInstant().atZone(ZoneId.of(ZoneId.systemDefault().toString()));
                 ZonedDateTime localEnd = zEnddt.toInstant().atZone(ZoneId.of(ZoneId.systemDefault().toString()));
-                ZoneId localZone = ZoneId.of(TimeZone.getDefault().getID());
-                appointment.add(new Appointment(result.getInt("Id"),result.getString("Name"),result.getString("Description"),localStart.toString(),localEnd.toString(),result.getString("Location"),result.getString("userName")));
+                if(localStart.getHour() < apptStartTime.getHour()){
+                    apptDate = apptDate.plusDays(1);
+                }
+                String start = String.valueOf(apptDate) + " " + String.valueOf(localStart.getHour()) + ":" + String.valueOf(localStart.getMinute());
+                String end = String.valueOf(apptDate) + " " + String.valueOf(localEnd.getHour()) + ":" + String.valueOf(localEnd.getMinute());
+                System.out.println(start + " " + end);
+                appointment.add(new Appointment(result.getInt("Id"),result.getString("Name"),result.getString("Description"),start,end,result.getString("Location"),result.getString("userName")));
                 AppointmentList.setItems(appointment);
                 AppointmentList.refresh();
             }
@@ -198,7 +212,7 @@ public class ViewApptController implements Initializable {
     }
     
     @FXML
-    private void All(MouseEvent event) throws IOException{
+    private void All(MouseEvent event) throws IOException, SQLException{
         appointmentTime.clear();
         generateAppointmentTable();
     }
