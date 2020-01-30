@@ -148,12 +148,12 @@
                             </TableColumn>
                               <TableColumn prefWidth="100.0" text="Start">
                                 <cellValueFactory>
-                                  <PropertyValueFactory property="Start" />
+                                  <PropertyValueFactory property="Startl" />
                                 </cellValueFactory>                                   
                             </TableColumn>
                               <TableColumn prefWidth="100.0" text="End">
                                 <cellValueFactory>
-                                  <PropertyValueFactory property="End" />
+                                  <PropertyValueFactory property="Endl" />
                                 </cellValueFactory>                                   
                             </TableColumn>
                               <TableColumn prefWidth="100.0" text="Phone">

@@ -26,10 +26,11 @@ public class Appointment {
     String user;
     String phone;
     String url;
-    
     int customerId;
     int userId;
     int cityId;
+    LocalDateTime Startl;
+    LocalDateTime Endl;
     String title;
     String contact;
     Timestamp createDate;
@@ -38,6 +39,14 @@ public class Appointment {
     String lastUpdateBy;
     Timestamp start1;
     Timestamp end1;
+    
+    public LocalDateTime getStartl() {
+        return Startl;
+    }
+
+    public LocalDateTime getEndl() {
+        return Endl;
+    }
     
     public int getCityId() {
         return cityId;
@@ -135,6 +144,14 @@ public class Appointment {
         this.name = name;
         this.start = start;
         this.end = end;
+        this.phone = phone;
+        this.id = id;
+    }
+    
+    public Appointment(String name, LocalDateTime Startl, LocalDateTime Endl, String phone, int id) {
+        this.name = name;
+        this.Startl = Startl;
+        this.Endl = Endl;
         this.phone = phone;
         this.id = id;
     }

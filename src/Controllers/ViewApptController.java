@@ -6,7 +6,7 @@
 package Controllers;
 
 import Models.Appointment;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -30,8 +30,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -102,11 +104,17 @@ public class ViewApptController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generateAppointmentTable();
-//        checkFifteen();
+        checkFifteen();
+        try {
+            log(userName + " " + date);
+        } catch (IOException ex) {
+            Logger.getLogger(ViewApptController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     } 
     
     private void generateAppointmentTable() {
         appointment.clear();
+        appointmentTime.clear();
         q = "select\n" +
             "a.appointmentId Id,\n" +
             "c.customerName Name,\n" +
@@ -153,21 +161,22 @@ public class ViewApptController implements Initializable {
                 }
                 start = String.valueOf(apptDate) + " " + String.valueOf(localStart.getHour()) + ":" + String.valueOf(localStart.getMinute());
                 end = String.valueOf(apptDate) + " " + String.valueOf(localEnd.getHour()) + ":" + String.valueOf(localEnd.getMinute());
-                System.out.println(start + " " + end);
                 appointment.add(new Appointment(result.getInt("Id"),result.getString("Name"),result.getString("Description"),start,end,result.getString("Location"),result.getString("userName")));
                 AppointmentList.setItems(appointment);
                 AppointmentList.refresh();
+                appointmentTime.add(new Appointment(result.getString("Name"),result.getTimestamp("Start").toLocalDateTime(),result.getTimestamp("End").toLocalDateTime(),result.getString("Name"),result.getInt("Id")));
             }
         } catch (SQLException ex) {
             Logger.getLogger(ViewApptController.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
     }
     
     private void checkFifteen(){
-        ZonedDateTime now = ZonedDateTime.now();
-        for(Appointment a: appointment){
-            if(ZonedDateTime.parse(a.getStart()).isAfter(now) && ZonedDateTime.parse(a.getStart()).isBefore(now.plusMinutes(15))){
-                alertMessage(a.getUserName() + " has an appointment with " + a.getCustomerName() + " at " + a.getStart().substring(11));
+        for(Appointment a: appointmentTime){
+            LocalDateTime start = a.getStartl();
+            if(start.isAfter(date) && start.isBefore(date.plusMinutes(15))){
+                alertMessage("You have an appointment with " + a.getCustomerName() + " at " + a.getStartl().getHour() + ":" + a.getStartl().getMinute());
             }
         }
     }
@@ -291,4 +300,16 @@ public class ViewApptController implements Initializable {
            alert.setContentText(field);
            alert.showAndWait();
         }
+    
+    private void log(String log) throws IOException{
+        String fileName = "log.txt";
+        FileWriter fwriter = new FileWriter(fileName, true);
+        PrintWriter output = new PrintWriter(fwriter);
+        output.println(log);
+        System.out.println(log);
+        output.close();
+        System.out.println("File written.");
+
+    }
+    
 }
