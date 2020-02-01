@@ -622,6 +622,14 @@ private void generateCustomerTable(){
                 alertMessage("Your end time conflicts with another appointment (based on both appointment's local times)");
                 apptCheck += 1;
             }
+            if(apptStart.equals(ZonedDateTime.of(a.getStartl(), zone))){
+                alertMessage("Your start time conflicts with another appointment (start times are the same)");
+                apptCheck += 1;
+            }
+            if(apptEnd.equals(ZonedDateTime.of(a.getEndl(), zone))){
+                alertMessage("Your end time conflicts with another appointment (end times are the same");
+                apptCheck += 1;
+            }
         }
         
         return apptCheck;
