@@ -40,6 +40,7 @@ public class EditCustomerController implements Initializable {
     String userName;
     LocalDateTime date = LocalDateTime.now();
     int search = -1;
+    int newCustomer = -1;
         
 
     @FXML
@@ -133,6 +134,9 @@ public class EditCustomerController implements Initializable {
         idCounter += 1;
         CustomerID.setText(String.valueOf(idCounter));
         Clear();
+        if(newCustomer == -1){
+            newCustomer *= -1;
+        }
     }
     
     private void Clear(){
@@ -143,6 +147,10 @@ public class EditCustomerController implements Initializable {
         Country.clear();
         Zip.clear();
         Phone.clear();
+        if(newCustomer == 1){
+            newCustomer *= -1;
+        }
+            
     }
 
     @FXML
@@ -188,9 +196,8 @@ public class EditCustomerController implements Initializable {
         }
         
         //begin update/insert
-        while(result.next()){
-            idCounter += 1;
-            if( idCounter == 1){
+        
+            if(newCustomer == -1){
               //update record  
               q2 = "update \n" +
                     "U05Hru.customer cu, U05Hru.address ad, U05Hru.city ci, U05Hru.country co\n" +
@@ -229,10 +236,13 @@ public class EditCustomerController implements Initializable {
               q2 = "insert into customer (customerName,addressId,active,createDate,createdBy,lastUpdateBy) values('" + CustomerName.getText().trim() + "','" + addressId + "',0,'" + date + "','" + userName + "','" + userName + "')"; 
               Query.makeQuery(q2);
             }
-        }
+        
         CustomerID.clear();
         Clear();
         generateCustomerTable();
+        if(newCustomer == 1){
+            newCustomer *= -1;
+        }
     }
     
     @FXML
@@ -291,7 +301,7 @@ public class EditCustomerController implements Initializable {
 
     @FXML
     private void Close(MouseEvent event) throws IOException {
-        
+        Clear();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/ViewAppt.fxml"));
         Controllers.ViewApptController controller = new Controllers.ViewApptController(userName);
         loader.setController(controller);

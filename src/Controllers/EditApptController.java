@@ -203,7 +203,7 @@ private void generateCustomerTable(){
     }
 
     @FXML
-    private void New(MouseEvent event) {
+    private void New(MouseEvent event) throws SQLException {
         if(custSelect == 1){
             custSelect = custSelect * -1;
         }
@@ -211,10 +211,16 @@ private void generateCustomerTable(){
             newAppointment *= -1;
         }
         clear.clear();
+        q = "select a.appointmentId from appointment a order by appointmentId";
+        ResultSet result = Query.makeQuery(q);
+        while(result.next()){
+            apptId = result.getInt("appointmentId") + 1;
+        }
+        ApptID.setText(String.valueOf(apptId));
     }
 
     @FXML
-    private void Save(MouseEvent event) {
+    private void Save(MouseEvent event) throws SQLException {
         
         if(validate.validate()){
             if(apptVal.apptVal() != 0) {
@@ -243,7 +249,7 @@ private void generateCustomerTable(){
     private void Update(){
         LocalTime startTime = LocalTime.parse(ApptStart.getText().trim());
         LocalTime endTime = LocalTime.parse(ApptEnd.getText().trim());
-        LocalDate date = LocalDate.now();
+        LocalDate date = ApptDate.getValue();
         LocalDateTime start = LocalDateTime.of(date, startTime);
         LocalDateTime end = LocalDateTime.of(date, endTime);
         if(validate.validate()){
@@ -264,23 +270,26 @@ private void generateCustomerTable(){
                     "where a.appointmentId = '" + ApptID.getText() + "'";
                     Query.makeQuery(q);
                     generateAppointmentTable();
+                    System.out.println("Appt Updated");
                     clear.clear();
                 }
         }
     }
     
-    private void NewAppt(){
+    private void NewAppt() throws SQLException{
         LocalTime startTime = LocalTime.parse(ApptStart.getText().trim());
         LocalTime endTime = LocalTime.parse(ApptEnd.getText().trim());
         LocalDate date = LocalDate.now();
         LocalDateTime start = LocalDateTime.of(date, startTime);
         LocalDateTime end = LocalDateTime.of(date, endTime);
+        ApptID.setText(String.valueOf(apptId));
         if(validate.validate()){
             if(apptVal.apptVal() != 0){
                 return;
             } else {
             q = "insert into appointment (customerId,userId,title,description,location,contact,type,url,start,end,createDate,createdBy,lastUpdateBy) values('" + custId + "','" + userId + "','Title','" + Description.getText().trim() + "','" + ApptLoc.getText().trim() + "','" + ApptContact.getText().trim() + "','" + ApptType.getText().trim() + "','" + URL.getText().trim() + "','" + start + "','" + end + "','" + date + "','" + userName + "','" + userName + "')";
             Query.makeQuery(q);
+            System.out.println("Appt added");
             }
         }
         generateAppointmentTable();
@@ -354,6 +363,9 @@ private void generateCustomerTable(){
     @FXML
     private void ApptSelect(MouseEvent event) throws SQLException {
         newAppt = ApptList.getSelectionModel().getSelectedItem();
+        LocalTime setStart = null;
+        LocalTime setEnd = null;
+        LocalDate setDate;
         q = "select\n" +
             "ap.appointmentId Id,\n" +
             "cu.customerName Name,\n" +
@@ -376,22 +388,24 @@ private void generateCustomerTable(){
         ResultSet result = Query.makeQuery(q);
         try{
             while(result.next()){
-                LocalTime setStart = result.getTime("Start").toLocalTime();
-                LocalTime setEnd = result.getTime("End").toLocalTime();
-                LocalDate setDate = result.getDate("Start").toLocalDate();
+                setStart = result.getTime("Start").toLocalTime();
+                setEnd = result.getTime("End").toLocalTime();
+                setDate = result.getDate("Start").toLocalDate();
                 ApptID.setText(String.valueOf(result.getInt("Id")));
                 CustomerName.setText(result.getString("Name"));
                 Description.setText(result.getString("Description"));
                 ApptType.setText(result.getString("Type"));
                 ApptDate.setValue(setDate);
-                ApptStart.setText(setStart.toString());
-                ApptEnd.setText(setEnd.toString());
+                ApptStart.setText(setStart.format(timeOnly));
+                ApptEnd.setText(setEnd.format(timeOnly));
                 ApptLoc.setText(result.getString("Location"));
                 ApptContact.setText(result.getString("Contact"));
                 URL.setText(result.getString("Url"));
                 custId = result.getInt("customerId");
                 cityId = result.getInt("City");
+                
             }
+           
             
         } catch (SQLException ex) {
             Logger.getLogger(EditCustomerController.class.getName()).log(Level.SEVERE, null, ex);
@@ -454,6 +468,14 @@ private void generateCustomerTable(){
         if(localStart.getHour() < apptStartTime.getHour()){
             ApptDate.setValue(apptDate.plusDays(1));
         }
+        String start = ApptStart.getText();
+        String end = ApptEnd.getText();
+        if(start.equals("[0-9]:[0-9][0-9]")){
+                    ApptStart.setText("0" + start);
+        }
+        if(end.equals("[0-9]:[0-9][0-9]")){
+            ApptEnd.setText("0" + end);
+        } 
         return;
     }
     
@@ -471,6 +493,7 @@ private void generateCustomerTable(){
         CustomerName.clear();
         Description.clear();
         ApptType.clear();
+        ApptDate.setValue(null);
         ApptStart.clear();
         ApptEnd.clear();
         ApptLoc.clear();
@@ -480,8 +503,6 @@ private void generateCustomerTable(){
     };
     
     validate validate = () -> {
-        LocalTime apptStarts = LocalTime.parse(ApptStart.getText());
-        LocalTime apptEnds = LocalTime.parse(ApptEnd.getText());
        if(CustomerName.getText().trim().length() == 0) {
            alertMessage("Name must not be blank");
            return false;
@@ -494,8 +515,12 @@ private void generateCustomerTable(){
            alertMessage("Start must not be blank");
            return false;
        }
-       if(apptEnds.isBefore(apptStarts)){
-           alertMessage("Start must be before end. Remember to use 24hr format for times.");
+       if(!ApptStart.getText().trim().matches("([01][0-9]|2[0-3]):[0-5][0-9]")){
+           alertMessage("Start time must be in HH:MM format");
+           return false;
+       }
+       if(!ApptEnd.getText().trim().matches("([01][0-9]|2[0-3]):[0-5][0-9]")){
+           alertMessage("End time must be in HH:MM format");
            return false;
        }
        if(ApptEnd.getText().trim().length() == 0){
@@ -514,36 +539,91 @@ private void generateCustomerTable(){
            alertMessage("URL must not be blank");
            return false;
        }
+        LocalTime apptStarts = LocalTime.parse(ApptStart.getText());
+        LocalTime apptEnds = LocalTime.parse(ApptEnd.getText());
+        if(apptEnds.isBefore(apptStarts)){
+           alertMessage("Start must be before end. Remember to use 24hr format for times.");
+           return false;
+       }
        return true;
     };
     
     apptVal apptVal = () -> {
         apptCheck = 0;
-        LocalDate apptDate = ApptDate.getValue();
-        LocalTime apptStarts = LocalTime.parse(ApptStart.getText());
-        LocalTime apptEnds = LocalTime.parse(ApptEnd.getText());
-        LocalDateTime apptStartTime = LocalDateTime.of(apptDate.getYear(), apptDate.getMonth(), apptDate.getDayOfMonth(), apptStarts.getHour(), apptStarts.getMinute());
-        LocalDateTime apptEndTime = LocalDateTime.of(apptDate.getYear(), apptDate.getMonth(), apptDate.getDayOfMonth(), apptEnds.getHour(), apptEnds.getMinute());
-        System.out.println(apptStartTime);
+        ZoneId zone = null;
+        //check business hours (M-F 8-5 in CUSTOMER time zone)
+        if(newAppointment == -1){
+            q = "select ci.cityId city, ap.start start, ap.end end from appointment ap join customer cu on ap.customerId = cu.customerId join address ad on cu.addressId = ad.addressId join city ci on ad.cityId = ci.cityId where ap.appointmentId = '" + ApptID.getText() + "'";
+            try{
+                ResultSet result = Query.makeQuery(q);
+                while(result.next()){
+                    cityId = result.getInt("city");
+                }
+                switch(cityId){
+                    case 4:
+                        zone = ZoneId.of("America/Mexico_City");
+                        break;  
+                    case 1:
+                        zone = ZoneId.of("America/Phoenix");
+                        break;
+                    case 3:
+                        zone = ZoneId.of("Europe/London");
+                        break;
+                    case 2:
+                        zone = ZoneId.of("America/New_York");
+                        break;
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(ViewApptController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else{
+           q = "select ci.cityId city from customer cu join address ad on cu.addressId = ad.addressId join city ci on ad.cityId = ci.cityId where cu.customerId = '" + CustomerList.getSelectionModel().getSelectedItem().getId() + "'";
+            try{
+                ResultSet result = Query.makeQuery(q);
+                while(result.next()){
+                    cityId = result.getInt("city");
+                }
+                switch(cityId){
+                    case 4:
+                        zone = ZoneId.of("America/Mexico_City");
+                        break;  
+                    case 1:
+                        zone = ZoneId.of("America/Phoenix");
+                        break;
+                    case 3:
+                        zone = ZoneId.of("Europe/London");
+                        break;
+                    case 2:
+                        zone = ZoneId.of("America/New_York");
+                        break;
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(ViewApptController.class.getName()).log(Level.SEVERE, null, ex);
+            } 
+        }
+        ZonedDateTime apptStart = ZonedDateTime.of(ApptDate.getValue(), LocalTime.parse(ApptStart.getText().trim()), zone);
+        ZonedDateTime apptEnd = ZonedDateTime.of(ApptDate.getValue(), LocalTime.parse(ApptEnd.getText().trim()), zone);
+        if(apptStart.getHour() < 8 || apptStart.getHour() > 17){
+            alertMessage("Your start time: " + apptStart.getHour() + " is outside the client's local business hours (M-F 8-5)");
+            apptCheck += 1;
+        }
+        if(apptStart.getDayOfWeek().equals(SATURDAY) || apptStart.getDayOfWeek().equals(SUNDAY)){
+            alertMessage("Your start day: " + apptStart.getDayOfWeek() + " is outside the client's local business hours (M-F 8-5)");
+            apptCheck += 1;
+        }
+        
+        //check if appt overlaps with other appt        
         for(Appointment a: appointment){
-            if(a.getAppointmentId() != Integer.valueOf(ApptID.getText())){
-                if(apptStartTime.isAfter(a.getStartl()) && apptStartTime.isBefore(a.getEndl())){
-                    apptCheck +=1;
-                }
+            if(apptStart.isAfter(ZonedDateTime.of(a.getStartl(), zone)) && apptStart.isBefore(ZonedDateTime.of(a.getEndl(), zone))){
+                alertMessage("Your start time conflicts with another appointment (based on both appointment's local times");
+                apptCheck += 1;
             }
-            if(a.getAppointmentId() != Integer.valueOf(ApptID.getText())){
-                if(apptEndTime.isAfter(a.getStartl()) && apptEndTime.isBefore(a.getEndl())){
-                    apptCheck +=1;
-                }
+            if(apptEnd.isAfter(ZonedDateTime.of(a.getStartl(), zone)) && apptEnd.isBefore(ZonedDateTime.of(a.getEndl(), zone))){
+                alertMessage("Your end time conflicts with another appointment (based on both appointment's local times)");
+                apptCheck += 1;
             }
         }
-        if(apptCheck != 0){
-            alertMessage("Appointment cannot overlap other appointment(s)");
-        }
-        if(apptDate.getDayOfWeek().equals(SATURDAY) || apptDate.getDayOfWeek().equals(SUNDAY) || apptStarts.getHour() < 8 || apptEnds.getHour() > 23 ){
-           apptCheck +=1; 
-           alertMessage("Appt must be during local business hours. Your start day is: " + apptDate.getDayOfWeek() + " and start time is: " + apptStarts.getHour());
-        }
+        
         return apptCheck;
     };
             

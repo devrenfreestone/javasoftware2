@@ -24,6 +24,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import java.util.Locale;
+import javafx.scene.control.Label;
 
 /**
  * FXML Controller class
@@ -31,7 +32,7 @@ import java.util.Locale;
  * @author Dev
  */
 public class LogInController implements Initializable {
-    String language = Locale.getDefault().toString();
+    Locale language;
 
     @FXML
     private TextField username;
@@ -39,29 +40,36 @@ public class LogInController implements Initializable {
     private PasswordField password;
     @FXML
     private Button buttonLogIn;
+    @FXML 
+    private Label labelLogIn;
 
     /**
      * Initializes the controller class.
+     * @param url
+     * @param rb
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
-    }    
-
-    @FXML
-    private void logIn(MouseEvent event) throws IOException {
-        String userName = username.getText().trim();
-        String passWord = password.getText().trim();
-        if(language.startsWith("es")){
+        setLang();
+    } 
+    
+    private void setLang(){
+        language = Locale.getDefault();
+        if(language.getLanguage().equals(new Locale("es").getLanguage())){
             username.setText("Nombre de usuario");
             password.setText("Contraseña");
+            buttonLogIn.setText("Iniciar sesión");
+            labelLogIn.setText("Iniciar sesión");
         }
-        try{
+    }
+
+    @FXML
+    private void logIn(MouseEvent event) throws IOException, Exception {
             //Test Connection (see console for successful connection message)
             DBConnection.startConnection();
             
             //Write SQL statement
-            String sqlStatement = "SELECT * FROM user WHERE user.userName = '" + userName + "' AND user.password = '" + passWord + "'";
+            String sqlStatement = "SELECT * FROM user WHERE user.userName = '" + username.getText().trim() + "' AND user.password = '" + password.getText().trim() + "'";
             
             //Execute Statement and create ResultSet object
             ResultSet result = Query.makeQuery(sqlStatement);
@@ -69,13 +77,11 @@ public class LogInController implements Initializable {
             //Get all records from ResultSet object
             int count = 0;
             while(result.next()) {
-//                
-                ++count;
+                count +=1;
             }
-            
             if(count == 1){
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/Views/ViewAppt.fxml"));
-                Controllers.ViewApptController controller = new Controllers.ViewApptController(userName);
+                Controllers.ViewApptController controller = new Controllers.ViewApptController(username.getText().trim());
                 loader.setController(controller);
                 Parent root = loader.load();                
                 Scene scene = new Scene(root);
@@ -84,28 +90,22 @@ public class LogInController implements Initializable {
                 stage.setResizable(false);
                 stage.show();
             } else{
-                if(language.startsWith("es")){
-                    alertMessage("Nombre de usuario o contraseña incorrecto");
-                } else {
-                    alertMessage("Incorrect username or password");
-                }
+                invalid();
+
             }
-            
-//            launch(args);
-            
-        } catch (Exception ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
-        
-        
-        
-        
     }
-    
+    private void invalid(){
+            
+        if(language.getLanguage().equals(new Locale("es").getLanguage())){
+            alertMessage("Nombre de usuario o contraseña incorrecto");
+        } else{
+            alertMessage("Incorrect username or password");
+        }
+    }
     
     private void alertMessage(String field){
            Alert alert = new Alert(Alert.AlertType.WARNING);
-           if(language.startsWith("es")){
+           if(language.getLanguage().equals(new Locale("es").getLanguage())){
                     alert.setTitle("Incapaz de iniciar sesión");
                 } else {
                     alert.setTitle("Unable to log in");
